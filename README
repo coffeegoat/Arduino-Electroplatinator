@@ -1,0 +1,7 @@
+This is an arduino power electroplater
+
+The basic idea is that the arduino will function as the controller and will interface directly with a set of gates.  A relay, motor driver and SSR will be controlled via a darlington gate.  The operation of the system will be relatively simple, the user programs in the requisite values, total plate time, duty cycle and plate period to the program.  The program is uploaded and the arduino is disconnected from the computer.  
+
+The controller can then be moved to the plating location, it is connected directly to a backing power supply which will supply the current and set the voltage.  The output of the controller will be connected to the components in the plating bath via the plating fixtures.  
+
+After plugging the system in (both plating power and controller power) the ready light (blue LED) is activated and the system is in wait mode.  Finally the operator selects the plating modes using the three way toggle.  Constant on, on/off, or directionally varying, and depresses the start button which transitions the system into run mode (the green LED should activate).  This initiates the process and unless interrupted using the kill switch.  If the kill switch is depressed the system automatically stops all current flow and enters a stopped mode.  To reset the device hold both start and kill buttons simultaneously until all three indicator LEDS light up, then release the buttons.  The system will return to a ready state for further work.  
