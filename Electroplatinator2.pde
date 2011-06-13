@@ -10,7 +10,7 @@
  
  The circuit:
  Inputs
- * D12: Half of toggle switch, indicates the simple on/off pulse mode
+ * D5: Half of toggle switch, indicates the simple on/off pulse mode
  * D2: Other half of toggle, indicates the fancy reverse polarity pulsing
  * D3: Start Button, activate the process
  * D4: E-stop
@@ -21,9 +21,13 @@
  * D9: Green Indicator (process running)
  * D10: Amber Indicator (process ready)
  * D11: Red Indicator (process killed (you broke something))
+ * D12  Relay Activation (for Simple Pulse and Constant Current
  
  Created by Micah Casteel
  02JUN2011
+ 
+ Modified 
+ 13JUN2011
  
  This code is in the public domain. (or should be)
  */
@@ -33,7 +37,7 @@
 // to the pins used:
 
 // Input Pins
-const int ModeSimple = 12;     // Select On/Off 
+const int ModeSimple = 5;     // Select On/Off 
 const int ModeDirectional = 2; //select Directional
 const int Activate   = 3;      // Initiate Electroplatication
 const int KillSwitch = 4;      // Oh Shit something broke!  Turn it off!
@@ -45,6 +49,7 @@ const int Dir           = 8;   // Directional Dir Pin
 const int IndicatorGreen= 9;   // Green Indicator Light
 const int IndicatorAmber= 10;  // Amber Indicator Light
 const int IndicatorRed  = 11;  // Red Indicator Light
+const int Relay         = 12;  // Relay
 
 //miscellaneous flags, variables, etc...
 boolean Reset = false;         // Reset Function
@@ -73,7 +78,8 @@ pinMode(DirOnOff, OUTPUT);
 pinMode(Dir, OUTPUT);   
 pinMode(IndicatorGreen, OUTPUT);   
 pinMode(IndicatorRed, OUTPUT);    
-pinMode(IndicatorAmber, OUTPUT);     
+pinMode(IndicatorAmber, OUTPUT);   
+pinMode(Relay, OUTPUT);
   
 IndicatorSet(1, 0, 0);   //Initialize indicators
 
@@ -92,6 +98,7 @@ void loop() {
     IndicatorSet(0, 0, 1);   //Initialize indicators
     long x = 0; 
     if (digitalRead(ModeSimple)== HIGH){ //simple program
+        digitalWrite(Relay, HIGH); 
         for (RunTime = 0; RunTime <= PlateDuration; RunTime = RunTime + 10){
           if (digitalRead(KillSwitch)==HIGH){
             Kill = true;
@@ -115,7 +122,8 @@ void loop() {
         } 
        RunComplete();
     }  
-      else {      //only on program    
+      else {      //only on program   
+        digitalWrite(Relay, HIGH);  
         for (RunTime = 0; RunTime < PlateDuration; RunTime = RunTime + 10){
           if (digitalRead(KillSwitch)==HIGH){
             Kill = true;
@@ -195,7 +203,8 @@ long ModeDirectionalFunction(long x){
     }
 
 void RunComplete(){
-     OutputSet(0,0,0);     
+     OutputSet(0,0,0); 
+     digitalWrite(Relay, LOW);     
      Run = false; //Sets run flag
   if (Kill == true){
     }
@@ -206,6 +215,7 @@ void RunComplete(){
 
 void KillLoop(){
   IndicatorSet(0,1,0);
+  digitalWrite(Relay, LOW); 
   Reset = false;        //ensure reset is initialized
     //watch for reset  
     while (!Reset) {    //check for reset

@@ -1,3 +1,8 @@
+13JUN2011
+Updated the system, completely integrated with the hardware on input side, tomorrow ~Outputs!
+
+
+06JUN2011
 This is an arduino power electroplater
 
 The basic idea is that the arduino will function as the controller and will interface directly with a set of gates.  A relay, motor driver and SSR will be controlled via a darlington gate.  The operation of the system will be relatively simple, the user programs in the requisite values, total plate time, duty cycle and plate period to the program.  The program is uploaded and the arduino is disconnected from the computer.  
