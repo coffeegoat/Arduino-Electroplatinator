@@ -10,16 +10,16 @@
  
  The circuit:
  Inputs
- * D2: Half of toggle switch, indicates the simple on/off pulse mode
- * D3: Other half of toggle, indicates the fancy reverse polarity pulsing
+ * D2: Half of toggle switch, indicates the fancy reverse polarity pulsing
+ * D3: Other half of toggle, indicates the simple on/off pulse mode 
  * D4: Start Button, activate the process
  * D5: E-stop
  Outputs
- * D7: Complex pulse on/off
- * D8: Complex pulse Direction
- * D6: Simple Pulse On/Off 
+ * D6: Complex pulse on/off
+ * D7: Complex pulse Direction
+ * D8: Simple Pulse On/Off 
  * D9: Green Indicator (process running)
- * D10: Amber Indicator (process ready)
+ * D10: Blue Indicator (process ready)
  * D11: Red Indicator (process killed (you broke something))
  * D12: Relay Activation (for Simple Pulse and Constant Current
  * D13: Fan activation
@@ -38,8 +38,8 @@
 // to the pins used:
 
 // Input Pins
-const int ModeSimple       = 2;     // Select On/Off 
-const int ModeDirectional  = 3;     //select Directional
+const int ModeDirectional  = 2;     //select Directional
+const int ModeSimple       = 3;     // Select On/Off 
 const int Activate         = 4;     // Initiate Electroplatication
 const int KillSwitch       = 5;     // Oh Shit something broke!  Turn it off!
 
@@ -48,7 +48,7 @@ const int DirOnOff      = 6;   // Directional Pulse Pin
 const int Dir           = 7;   // Directional Dir Pin
 const int SimplePulse   = 8;   // Straight Pulse Pin
 const int IndicatorGreen= 9;   // Green Indicator Light
-const int IndicatorAmber= 10;  // Amber Indicator Light
+const int IndicatorBlue= 10;  // Blue Indicator Light
 const int IndicatorRed  = 11;  // Red Indicator Light
 const int Relay         = 12;  // Relay
 const int Fan           = 13;  // Fan
@@ -62,10 +62,10 @@ long PulseOff = 0;             // Simple pulse off time
 
 //This section sets up the waveform parameters, these will
 //be changed to the desired run parameters
-long PlateDuration = 1; // Plating time duration (in minutes)
-long   Period    = 100;  // Waveform period (ms)
-float DutyCycle = 0.8;  // Percentage "on time" or "forward time"
-long RunTime    = 0;    // Run time variable
+long  PlateDuration = 1; // Plating time duration (in minutes)
+long  Period    = 500;  // Waveform period (ms)
+float DutyCycle = 0.6;  // Percentage "on time" or "forward time"
+long  RunTime    = 0;    // Run time variable
 
 //////////////////////////// Program Initialization ///////////////////////////////
 
@@ -80,7 +80,7 @@ void setup(){
   pinMode(Dir, OUTPUT);   
   pinMode(IndicatorGreen, OUTPUT);   
   pinMode(IndicatorRed, OUTPUT);    
-  pinMode(IndicatorAmber, OUTPUT);   
+  pinMode(IndicatorBlue, OUTPUT);   
   pinMode(Relay, OUTPUT);
   pinMode(Fan, OUTPUT);
   
@@ -90,13 +90,14 @@ void setup(){
   digitalWrite(SimplePulse, LOW); 
   digitalWrite(DirOnOff, LOW);
   digitalWrite(Dir, LOW); 
-
+  
+  Serial.begin(9600);
  
   //Perform initialization calcs 
   Period = 10 * (Period / 10); //  trim period to 10 millisecond intervals
   PlateDuration = Period*((PlateDuration * 60 * 1000)/Period); //conversion to milliseconds and chops off scrap
   PulseOn = Period * DutyCycle; // set on time variable
-  PulseOff = Period - PulseOn; // set off time variable
+  PulseOff = Period - PulseOn; // set off time variable    
 }
 
 //////////////////////////// Run Loop //////////////////////////////////////////////
@@ -109,13 +110,15 @@ void loop() {
     if (digitalRead(ModeSimple)== HIGH){ //simple program
       digitalWrite(Relay, HIGH); 
       digitalWrite(Fan, HIGH); 
-      for (RunTime = 0; RunTime <= PlateDuration; RunTime = RunTime + 10){
+      for (RunTime = 0; RunTime < PlateDuration; RunTime = RunTime + 10){
         if (digitalRead(KillSwitch)==HIGH){
           Kill = true;
           RunTime = PlateDuration;
         }
         else{
           x = SimplePulseFunction(x); 
+         //Serial.println(RunTime);     debug help
+         //Serial.println(x);           debug help 
         }
       }
       RunComplete();
@@ -154,15 +157,22 @@ bailout:
   if (Kill == true  || digitalRead(KillSwitch)==HIGH){ //Did we get here by a kill switch signal?
     KillLoop();
   }
-  delay(10);  //delay before running again             
+///////////////////Debugging Help/////////////////  
+//  Serial.println(Period);
+//  Serial.println(PlateDuration);
+//  Serial.println(PulseOn);
+//  Serial.println(PulseOff);
+///////////////////////////////
+  delay(2000);  //delay before running again             
   //rinse and repeat
+  
 }
 
 
 //////////////////////////// Sub Function Set-up //////////////////////////////////
 
-void IndicatorSet(boolean A,boolean R, boolean G){
-  digitalWrite(IndicatorAmber, A); 
+void IndicatorSet(boolean B,boolean R, boolean G){
+  digitalWrite(IndicatorBlue, B); 
   digitalWrite(IndicatorRed, R);
   digitalWrite(IndicatorGreen, G);
 }
@@ -179,7 +189,7 @@ long SimplePulseFunction(long x){
     x = x + 10;          
     delay(10);
   }
-  else if (x < PulseOn){ //starting the pulse
+  else if (x < PulseOn){ //pulse running
     x = x + 10;          
     delay(10);
   }         
@@ -188,8 +198,12 @@ long SimplePulseFunction(long x){
     x = x + 10;
     delay(10);
   }
-  else if (x = Period){
+  else if (x == Period){
     x = 0;
+  }
+  else {
+    x = x + 10;          
+    delay(10);
   }
   return x;
 }
@@ -209,8 +223,12 @@ long ModeDirectionalFunction(long x){
     x = x + 10;
     delay(10);
   }
-  else if (x = Period){//pulse running backwards
+  else if (x == Period){//pulse running backwards
     x = 0;
+  }
+  else {
+    x = x + 10;          
+    delay(10);
   }
   return x;
 }
