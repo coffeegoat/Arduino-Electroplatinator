@@ -1,3 +1,6 @@
+02DEC2011
+Updated the sytem both on the hardware side and refactored the program.  Now it only has a single set of outputs which are routed through a network of MOSFETS.  This simplifies the program, and allows for faster switching speeds, and higher switching currents.  Finally, I updated the pulse modulation so that it uses real time versus delays.  Hooray!
+
 13JUN2011
 Updated the system, completely integrated with the hardware on input side, tomorrow ~Outputs!
 
